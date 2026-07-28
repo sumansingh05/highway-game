@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>3D Highway Racing</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div id="start-screen">
+    <div class="menu-container">
+      <h1 class="game-title">🏎️ HIGHWAY RACING</h1>
+      <p class="subtitle">3D Turbo Edition</p>
+      <div class="controls-info">
+        <p><strong>Controls:</strong></p>
+        <p>⬅️ / ➡️ or A / D - Move lanes</p>
+        <p>⬆️ / W - Start or accelerate</p>
+        <p>⬇️ / S - Brake / pause</p>
+        <p><strong>C</strong> - Toggle camera</p>
+        <p><strong>P</strong> - Pause</p>
+      </div>
+      <button id="start-btn" class="menu-btn">START RACE</button>
+      <div class="menu-highlights">
+        <div class="highlight-pill">🪙 Collect coins</div>
+        <div class="highlight-pill">🚦 Avoid obstacles</div>
+        <div class="highlight-pill">⚡ Stay steady below 50 km/h</div>
+      </div>
+      <div id="leaderboard-btn-container">
+        <button id="leaderboard-btn" class="menu-btn small">🏆 Leaderboard</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-ui" class="hidden">
+    <div id="hud">
+      <div id="score-display">
+        <span class="hud-label">SCORE</span>
+        <span id="score" class="hud-value">0</span>
+      </div>
+      <div id="speed-display">
+        <span class="hud-label">SPEED</span>
+        <span id="speed" class="hud-value">0</span>
+        <span class="hud-unit">km/h</span>
+      </div>
+      <div id="high-score-display">
+        <span class="hud-label">BEST</span>
+        <span id="high-score" class="hud-value">0</span>
+      </div>
+      <div id="coin-display">
+        <span class="hud-label">COINS</span>
+        <span id="coin-count" class="hud-value">0</span>
+      </div>
+      <div id="camera-indicator" class="hud-badge">3RD PERSON</div>
+      <div id="boost-indicator" class="hud-badge boost">READY</div>
+    </div>
+
+    <div id="mobile-controls">
+      <div id="touch-left" class="touch-btn">⬅️</div>
+      <div id="touch-right" class="touch-btn">➡️</div>
+      <div id="touch-up" class="touch-btn">⬆️</div>
+      <div id="touch-down" class="touch-btn">⬇️</div>
+    </div>
+
+    <div id="pause-overlay" class="hidden">
+      <div class="overlay-content">
+        <h2>⏸️ PAUSED</h2>
+        <button id="resume-btn" class="menu-btn">RESUME</button>
+        <button id="quit-btn" class="menu-btn small">QUIT</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-over-screen" class="hidden">
+    <div class="menu-container">
+      <h1>💥 GAME OVER</h1>
+      <p id="final-score" class="final-score">Score: 0</p>
+      <p id="max-speed-reached" class="final-stat">Max Speed: 0 km/h</p>
+      <div id="new-highscore-badge" class="hidden">🏆 NEW HIGH SCORE!</div>
+      <div id="name-input-container">
+        <input type="text" id="player-name" maxlength="12" placeholder="Enter your name" value="Player" />
+        <button id="save-score-btn" class="menu-btn small">SAVE SCORE</button>
+      </div>
+      <button id="restart-btn" class="menu-btn">PLAY AGAIN</button>
+    </div>
+  </div>
+
+  <div id="leaderboard-screen" class="hidden">
+    <div class="menu-container">
+      <h1>🏆 LEADERBOARD</h1>
+      <div id="leaderboard-list">
+        <p class="no-scores">No scores yet. Play a game!</p>
+      </div>
+      <div class="leaderboard-actions">
+        <button id="clear-leaderboard-btn" class="menu-btn small danger">Clear All</button>
+        <button id="back-btn" class="menu-btn small">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="game-container"></div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="js/main.js?v=20260728"></script>
+</body>
+</html>
