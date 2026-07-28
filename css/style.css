@@ -101,7 +101,8 @@ body {
 
 #start-screen,
 #game-over-screen,
-#leaderboard-screen {
+#leaderboard-screen,
+#garage-screen {
   position: fixed;
   inset: 0;
   display: flex;
@@ -313,6 +314,63 @@ body {
   overflow-y: auto;
   margin: 18px 0;
   text-align: left;
+}
+
+.garage-container {
+  max-width: 620px;
+}
+
+.garage-balance {
+  font-size: 1.1rem;
+  color: #facc15;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.garage-status {
+  color: #cbd5e1;
+  margin-bottom: 12px;
+}
+
+#garage-list {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.garage-card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.garage-card h3 {
+  margin-bottom: 6px;
+  font-size: 1rem;
+}
+
+.garage-card p {
+  color: #cbd5e1;
+  font-size: 0.92rem;
+  margin-bottom: 8px;
+}
+
+.garage-card .card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.garage-card .card-badge {
+  color: #86efac;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.garage-card button {
+  margin: 0;
 }
 
 #game-over-screen .menu-container {

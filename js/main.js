@@ -5,6 +5,7 @@ const startScreen = $('start-screen');
 const gameUI = $('game-ui');
 const gameOverScreen = $('game-over-screen');
 const leaderboardScreen = $('leaderboard-screen');
+const garageScreen = $('garage-screen');
 const pauseOverlay = $('pause-overlay');
 const scoreEl = $('score');
 const speedEl = $('speed');
@@ -17,6 +18,9 @@ const playerNameInput = $('player-name');
 const leaderboardList = $('leaderboard-list');
 const cameraIndicator = $('camera-indicator');
 const boostIndicator = $('boost-indicator');
+const garageBalanceEl = $('garage-balance');
+const garageStatusEl = $('garage-status');
+const garageListEl = $('garage-list');
 const gameContainer = $('game-container');
 
 const scene = new THREE.Scene();
@@ -51,6 +55,9 @@ let score = 0;
 let playerSpeed = 0;
 let maxSpeed = 0;
 let coinCount = 0;
+let walletCoins = Number(localStorage.getItem('highway-racing-wallet') || 0);
+let currentCar = Number(localStorage.getItem('highway-racing-car') || 0);
+let ownedCars = JSON.parse(localStorage.getItem('highway-racing-owned-cars') || '[0]');
 let laneIndex = 1;
 let cameraThirdPerson = true;
 let paused = false;
@@ -64,32 +71,49 @@ const carGroup = new THREE.Group();
 carGroup.position.set(0, 0.9, 0);
 scene.add(carGroup);
 
-const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0xff3b30, roughness: 0.25, metalness: 0.8 });
-const cabinMaterial = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.6, metalness: 0.2 });
-const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95, metalness: 0.08 });
+const carPresets = [
+  { id: 0, name: 'Starter Coupe', price: 0, color: 0xff3b30, accent: 0x111827, topSpeed: 48 },
+  { id: 1, name: 'Turbo Hatch', price: 12, color: 0x3b82f6, accent: 0x0f172a, topSpeed: 54 },
+  { id: 2, name: 'Neon Drift', price: 24, color: 0xf472b6, accent: 0x111827, topSpeed: 60 }
+];
 
-const carBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.95, 4.4), bodyMaterial);
-carBody.position.y = 0.8;
-carGroup.add(carBody);
+function buildCarModel(carIndex) {
+  while (carGroup.children.length) {
+    carGroup.remove(carGroup.children[0]);
+  }
 
-const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.8, 1.8), cabinMaterial);
-cabin.position.set(0, 1.35, -0.12);
-carGroup.add(cabin);
+  const preset = carPresets[carIndex];
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: preset.color, roughness: 0.25, metalness: 0.8 });
+  const cabinMaterial = new THREE.MeshStandardMaterial({ color: preset.accent, roughness: 0.6, metalness: 0.2 });
+  const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95, metalness: 0.08 });
 
-const wheelGeometry = new THREE.CylinderGeometry(0.45, 0.45, 0.26, 24);
-wheelGeometry.rotateZ(Math.PI / 2);
-for (const position of [[-1.08, 0.35, 1.5], [1.08, 0.35, 1.5], [-1.08, 0.35, -1.5], [1.08, 0.35, -1.5]]) {
-  const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
-  wheel.position.set(...position);
-  carGroup.add(wheel);
+  const carBody = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.95, 4.4), bodyMaterial);
+  carBody.position.y = 0.8;
+  carGroup.add(carBody);
+
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.8, 1.8), cabinMaterial);
+  cabin.position.set(0, 1.35, -0.12);
+  carGroup.add(cabin);
+
+  const wheelGeometry = new THREE.CylinderGeometry(0.45, 0.45, 0.26, 24);
+  wheelGeometry.rotateZ(Math.PI / 2);
+  for (const position of [[-1.08, 0.35, 1.5], [1.08, 0.35, 1.5], [-1.08, 0.35, -1.5], [1.08, 0.35, -1.5]]) {
+    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+    wheel.position.set(...position);
+    carGroup.add(wheel);
+  }
+
+  const headlightMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff6d0, emissiveIntensity: 0.9 });
+  const leftHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.12), headlightMaterial);
+  const rightHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.12), headlightMaterial);
+  leftHeadlight.position.set(-0.62, 0.74, 2.24);
+  rightHeadlight.position.set(0.62, 0.74, 2.24);
+  carGroup.add(leftHeadlight, rightHeadlight);
+
+  return preset;
 }
 
-const headlightMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff6d0, emissiveIntensity: 0.9 });
-const leftHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.12), headlightMaterial);
-const rightHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.14, 0.12), headlightMaterial);
-leftHeadlight.position.set(-0.62, 0.74, 2.24);
-rightHeadlight.position.set(0.62, 0.74, 2.24);
-carGroup.add(leftHeadlight, rightHeadlight);
+let currentPreset = buildCarModel(currentCar);
 
 const roadMaterial = new THREE.MeshStandardMaterial({ color: 0x333544, roughness: 0.92, metalness: 0.08 });
 const shoulderMaterial = new THREE.MeshStandardMaterial({ color: 0x1f2937, roughness: 0.95, metalness: 0.05 });
@@ -213,10 +237,60 @@ function updateHud() {
   boostIndicator.classList.toggle('warning', playerSpeed >= 42);
 }
 
+function syncWallet() {
+  walletCoins = Math.max(0, walletCoins);
+  localStorage.setItem('highway-racing-wallet', String(walletCoins));
+  localStorage.setItem('highway-racing-car', String(currentCar));
+  localStorage.setItem('highway-racing-owned-cars', JSON.stringify(ownedCars));
+}
+
+function renderGarage() {
+  garageBalanceEl.textContent = `Coins: ${walletCoins}`;
+  garageStatusEl.textContent = `Equipped: ${carPresets[currentCar].name}`;
+  garageListEl.innerHTML = '';
+
+  carPresets.forEach((car, index) => {
+    const card = document.createElement('div');
+    card.className = 'garage-card';
+    const owned = ownedCars.includes(index);
+    const equipped = currentCar === index;
+    card.innerHTML = `
+      <div class="card-row">
+        <h3>${car.name}</h3>
+        <span class="card-badge">${equipped ? 'Equipped' : owned ? 'Owned' : 'Buyable'}</span>
+      </div>
+      <p>Top speed: ${car.topSpeed} km/h</p>
+      <div class="card-row">
+        <span>${owned ? 'Unlocked' : `Cost: ${car.price} coins`}</span>
+        <button class="menu-btn small" data-car-index="${index}">${owned ? (equipped ? 'Equipped' : 'Equip') : 'Buy'}</button>
+      </div>`;
+    garageListEl.appendChild(card);
+  });
+}
+
+function buyOrEquipCar(index) {
+  const preset = carPresets[index];
+  if (!ownedCars.includes(index)) {
+    if (walletCoins < preset.price) return;
+    walletCoins -= preset.price;
+    ownedCars.push(index);
+  }
+  currentCar = index;
+  currentPreset = buildCarModel(index);
+  syncWallet();
+  renderGarage();
+}
+
+function openGarage() {
+  renderGarage();
+  showScreen('garage');
+}
+
 function showScreen(screen) {
   startScreen.classList.add('hidden');
   gameOverScreen.classList.add('hidden');
   leaderboardScreen.classList.add('hidden');
+  garageScreen.classList.add('hidden');
   gameUI.classList.add('hidden');
   pauseOverlay.classList.add('hidden');
 
@@ -224,6 +298,7 @@ function showScreen(screen) {
   if (screen === 'game') gameUI.classList.remove('hidden');
   if (screen === 'over') gameOverScreen.classList.remove('hidden');
   if (screen === 'leaderboard') leaderboardScreen.classList.remove('hidden');
+  if (screen === 'garage') garageScreen.classList.remove('hidden');
 }
 
 function resetGame() {
@@ -231,6 +306,10 @@ function resetGame() {
   playerSpeed = 0;
   maxSpeed = 0;
   coinCount = 0;
+  walletCoins = Number(localStorage.getItem('highway-racing-wallet') || 0);
+  currentCar = Number(localStorage.getItem('highway-racing-car') || 0);
+  ownedCars = JSON.parse(localStorage.getItem('highway-racing-owned-cars') || '[0]');
+  currentPreset = buildCarModel(currentCar);
   laneIndex = 1;
   spawnTimer = 0.95;
   coinSpawnTimer = 1.2;
@@ -375,7 +454,9 @@ function animate() {
         coins.splice(i, 1);
       } else if (Math.abs(coin.position.x - carGroup.position.x) < 0.95 && Math.abs(coin.position.z - carGroup.position.z) < 1.2) {
         coinCount += 1;
+        walletCoins += 1;
         score += 35;
+        syncWallet();
         playCoinSound();
         scene.remove(coin);
         coins.splice(i, 1);
@@ -430,6 +511,7 @@ window.addEventListener('keydown', (event) => {
 });
 
 $('start-btn').addEventListener('click', () => resetGame());
+$('garage-btn').addEventListener('click', () => openGarage());
 $('restart-btn').addEventListener('click', () => resetGame());
 $('leaderboard-btn').addEventListener('click', () => {
   const board = JSON.parse(localStorage.getItem('highway-racing-leaderboard') || '[]');
@@ -437,6 +519,7 @@ $('leaderboard-btn').addEventListener('click', () => {
   showScreen('leaderboard');
 });
 $('back-btn').addEventListener('click', () => showScreen('start'));
+$('garage-close-btn').addEventListener('click', () => showScreen('start'));
 $('clear-leaderboard-btn').addEventListener('click', () => {
   localStorage.removeItem('highway-racing-leaderboard');
   renderLeaderboard([]);
@@ -467,7 +550,14 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+garageListEl.addEventListener('click', (event) => {
+  const button = event.target.closest('button[data-car-index]');
+  if (!button) return;
+  buyOrEquipCar(Number(button.dataset.carIndex));
+});
+
 renderLeaderboard(JSON.parse(localStorage.getItem('highway-racing-leaderboard') || '[]'));
 updateHud();
+renderGarage();
 showScreen('start');
 animate();

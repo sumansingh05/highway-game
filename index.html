@@ -20,6 +20,7 @@
         <p><strong>P</strong> - Pause</p>
       </div>
       <button id="start-btn" class="menu-btn">START RACE</button>
+      <button id="garage-btn" class="menu-btn small">🛠️ Garage</button>
       <div class="menu-highlights">
         <div class="highlight-pill">🪙 Collect coins</div>
         <div class="highlight-pill">🚦 Avoid obstacles</div>
@@ -93,6 +94,18 @@
       <div class="leaderboard-actions">
         <button id="clear-leaderboard-btn" class="menu-btn small danger">Clear All</button>
         <button id="back-btn" class="menu-btn small">Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="garage-screen" class="hidden">
+    <div class="menu-container garage-container">
+      <h1>🛠️ GARAGE</h1>
+      <p id="garage-balance" class="garage-balance">Coins: 0</p>
+      <p id="garage-status" class="garage-status">Pick a car to equip</p>
+      <div id="garage-list"></div>
+      <div class="garage-actions">
+        <button id="garage-close-btn" class="menu-btn small">Back</button>
       </div>
     </div>
   </div>
