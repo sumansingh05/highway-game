@@ -364,11 +364,73 @@ function saveScore() {
   renderLeaderboard(top);
 }
 
+const obstacleCarColors = [
+  { body: 0xef4444, accent: 0x1e293b },   // Red
+  { body: 0xf97316, accent: 0x1e293b },   // Orange
+  { body: 0x8b5cf6, accent: 0x1e293b },   // Purple
+  { body: 0x06b6d4, accent: 0x1e293b },   // Cyan
+  { body: 0x84cc16, accent: 0x1e293b },   // Lime
+  { body: 0xf43f5e, accent: 0x1e293b },   // Rose
+  { body: 0x22c55e, accent: 0x1e293b },   // Green
+  { body: 0xeab308, accent: 0x1e293b },   // Yellow
+];
+
+function buildObstacleCarMesh(colorPreset) {
+  const group = new THREE.Group();
+
+  const bodyMaterial = new THREE.MeshStandardMaterial({ color: colorPreset.body, roughness: 0.35, metalness: 0.6 });
+  const cabinMaterial = new THREE.MeshStandardMaterial({ color: colorPreset.accent, roughness: 0.6, metalness: 0.2 });
+  const wheelMaterial = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.95, metalness: 0.08 });
+  const headlightMaterial = new THREE.MeshStandardMaterial({ emissive: 0xfff6d0, emissiveIntensity: 0.9 });
+
+  // Car body - slightly smaller than player car
+  const carBody = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.85, 3.8), bodyMaterial);
+  carBody.position.y = 0.75;
+  carBody.castShadow = true;
+  group.add(carBody);
+
+  // Cabin
+  const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.7, 1.6), cabinMaterial);
+  cabin.position.set(0, 1.2, -0.1);
+  group.add(cabin);
+
+  // Wheels
+  const wheelGeometry = new THREE.CylinderGeometry(0.38, 0.38, 0.22, 20);
+  wheelGeometry.rotateZ(Math.PI / 2);
+  const wheelPositions = [[-0.96, 0.32, 1.3], [0.96, 0.32, 1.3], [-0.96, 0.32, -1.3], [0.96, 0.32, -1.3]];
+  for (const pos of wheelPositions) {
+    const wheel = new THREE.Mesh(wheelGeometry, wheelMaterial);
+    wheel.position.set(...pos);
+    group.add(wheel);
+  }
+
+  // Headlights (rear-facing since these are oncoming - so put on front which is -z after rotation)
+  const leftHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 0.1), headlightMaterial);
+  const rightHeadlight = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.12, 0.1), headlightMaterial);
+  leftHeadlight.position.set(-0.54, 0.68, -1.96);
+  rightHeadlight.position.set(0.54, 0.68, -1.96);
+  group.add(leftHeadlight, rightHeadlight);
+
+  // Tail lights (red emissive)
+  const tailLightMat = new THREE.MeshStandardMaterial({ emissive: 0xff0000, emissiveIntensity: 0.5 });
+  const leftTail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.08), tailLightMat);
+  const rightTail = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.08), tailLightMat);
+  leftTail.position.set(-0.54, 0.65, 1.94);
+  rightTail.position.set(0.54, 0.65, 1.94);
+  group.add(leftTail, rightTail);
+
+  // Rotate 180 degrees so car faces oncoming (toward player)
+  group.rotation.y = Math.PI;
+
+  return group;
+}
+
 function spawnObstacle() {
-  const obstacle = new THREE.Mesh(new THREE.BoxGeometry(1.45, 1.2, 1.45), new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.8 }));
-  obstacle.position.set(lanePositions[Math.floor(Math.random() * lanePositions.length)], 0.8, -40 - Math.random() * 20);
-  scene.add(obstacle);
-  obstacles.push(obstacle);
+  const colorPreset = obstacleCarColors[Math.floor(Math.random() * obstacleCarColors.length)];
+  const obstacleCar = buildObstacleCarMesh(colorPreset);
+  obstacleCar.position.set(lanePositions[Math.floor(Math.random() * lanePositions.length)], 0.35, -40 - Math.random() * 20);
+  scene.add(obstacleCar);
+  obstacles.push(obstacleCar);
 }
 
 function spawnCoin() {
